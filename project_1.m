@@ -26,6 +26,12 @@ corr_missing_returns    = missing_returns - mean(missing_returns);
 corr_log_returns            = log_returns - mean(log_returns);
 corr_log_missing_returns    = log_missing_returns - mean(log_missing_returns);
 
+[acf, lags, bounds, h] = autocorr(log_returns);
+
 figure;
 plot(log_returns)
 title('Log Returns')
+
+figure;
+stem(acf)
+title('Autocorrelation')
