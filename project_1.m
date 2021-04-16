@@ -14,9 +14,6 @@ X        = data(2 : end);
 X_missing_tp1    = data_missing(1 : end - 1);
 X_missing        = data_missing(2 : end);
 
-data_missing_tp1    = data(1 : end - 1);
-data_missing        = data(2 : end);
-
 returns         = X_tp1 - X;
 log_returns     = log(X_tp1) - log(X);
 
@@ -30,17 +27,5 @@ corr_log_returns            = log_returns - mean(log_returns);
 corr_log_missing_returns    = log_missing_returns - mean(log_missing_returns);
 
 figure;
-plot(returns)
-title('Returns')
-
-figure;
 plot(log_returns)
 title('Log Returns')
-
-figure;
-plot(returns)
-title('Corrected Returns')
-
-figure;
-plot(log_returns)
-title('Corrected Log Returns')
