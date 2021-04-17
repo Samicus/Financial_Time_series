@@ -14,10 +14,10 @@ X        = data(1 : end-1);
 returns         = X_tp1 - X;
 log_returns     = log(X_tp1) - log(X);
 
-[acf, lags, bounds, h] = autocorr(log_returns);
+[rho, lags, bounds, h] = autocorr(log_returns);
 
-acv = autocov(X_tp1, log_returns);
-acv = acv(1:q);
+gamma = autocov(X_tp1, log_returns);
+gamma = gamma(1:q);
 
 %% Incomplete Data
 
@@ -29,17 +29,16 @@ data = table.VolumeMissing;
 
 q = 7;
 
-X_tp1    = data(2 : end);
-X        = data(1 : end-1);
+X_tp1 = data(2 : end);
+X = data(1 : end-1);
 
-returns         = X_tp1 - X;
-log_returns     = log(X_tp1) - log(X);
-log_returns     = log_returns(~isnan(log_returns));
+returns = X_tp1 - X;
+log_returns = log(X_tp1) - log(X);
 
-[acf, lags, bounds, h] = autocorr(log_returns);
+[rho, lags, bounds, h] = autocorr(log_returns);
 
-acv = autocov(X_tp1, log_returns);
-acv = acv(1:q);
+gamma = autocov(X_tp1, log_returns);
+gamma = gamma(1:q);
 
 %% Problem 2
 close all
@@ -51,52 +50,47 @@ xlabel('t')
 title('Log Returns')
 
 figure;
-stem(acf)
+stem(rho)
 ylabel('\rho(h)')
 xlabel('h')
 title('Autocorrelation')
 
-%% Problem 3
-
-clc
-
 figure;
-plot(acv)
-ylabel('\gamma(t)')
-xlabel('t')
+plot(gamma)
+ylabel('\gamma(h)')
+xlabel('h')
 title('Autocovariance')
 
-sz = size(acv);
+sz = size(gamma);
 a = ones(sz);
 a(a == 1) = 1;
 
-a' * acv
+
+%% Problem 3
+
+clc
+close all
+
+
+q = 7;
+
+rho_mat = zeros(q, q);
+
+for i = 1:q
+    for j = 1:q
+        rho_mat(i, j) = rho(q + 1 - j) - rho(q + 1 - i);
+    end
+end
+
+a_mat = rho_mat * rho(1:q)
+plot(a_mat)
 
 %% Functions
 
-function[acv] = autocov(X,Y)
+function[gamma] = autocov(X,Y)
 
-% X = X(~isnan(X));
-% Y = Y(~isnan(Y));
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% autocov computes the autocovariance between two column vectors X and Y
-% with same length N using the Fast Fourier Transform algorithm from 0 to
-% N-2.
-% The resulting autocovariance column vector acv is given by the formula:
-% acv(p,1) = 1/(N-p) * \sum_{i=1}^{N} (X_{i} - X_bar) * (Y_{i+p} - Y_bar)
-% where X_bar and Y_bar are the mean estimates: 
-% X_bar = 1/N * \sum_{i=1}^{N} X_{i}; Y_bar = 1/N * \sum_{i=1}^{N} Y_{i}
-% It satisfies the following identities:
-% 1. variance consistency: if acv = autocov(X,X), then acv(1,1) = var(X)
-% 2. covariance consistence: if acv = autocov(X,Y), then acv(1,1) = cov(X,Y)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Written by Jacques Burrus on March 29th 2012.
-% Url: www.bfi.cl
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+X = X(~isnan(Y));
+Y = Y(~isnan(Y));
 
 % Verify the input consistency
 if nargin < 1, error('Missing input vector.'); end
@@ -114,7 +108,7 @@ Y_pad = [Y - mean(Y); zeros(M,1)];
 X_hat = fft(X_pad);
 Y_hat = fft(Y_pad);
 
-acv = ifft( conj( X_hat ) .* Y_hat );%the imaginary part is due to float precision errors.
-acv = real( acv(1:M-1) ) ./ (M - (1:1:M-1))';
+gamma = ifft( conj( X_hat ) .* Y_hat );%the imaginary part is due to float precision errors.
+gamma = real( gamma(1:M-1) ) ./ (M - (1:1:M-1))';
 
 end
