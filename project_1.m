@@ -1,29 +1,45 @@
-%% Data
+%% Complete Data
 
 clear
 clc
 
 table = readtable('intel.csv');
 data = table.Volume;
-data_missing = table.VolumeMissing;
 
-n = length(data);
+q = 7;
 
 X_tp1    = data(2 : end);
 X        = data(1 : end-1);
 
-X_missing_tp1    = data_missing(2 : end);
-X_missing        = data_missing(1 : end - 1);
-
 returns         = X_tp1 - X;
 log_returns     = log(X_tp1) - log(X);
-
-missing_returns         = X_missing_tp1 - X_missing;
-log_missing_returns     = log(X_missing_tp1) - log(X_missing);
 
 [acf, lags, bounds, h] = autocorr(log_returns);
 
 acv = autocov(X_tp1, log_returns);
+acv = acv(1:q);
+
+%% Incomplete Data
+
+clear all
+clc
+
+table = readtable('intel.csv');
+data = table.VolumeMissing;
+
+q = 7;
+
+X_tp1    = data(2 : end);
+X        = data(1 : end-1);
+
+returns         = X_tp1 - X;
+log_returns     = log(X_tp1) - log(X);
+log_returns     = log_returns(~isnan(log_returns));
+
+[acf, lags, bounds, h] = autocorr(log_returns);
+
+acv = autocov(X_tp1, log_returns);
+acv = acv(1:q);
 
 %% Problem 2
 close all
@@ -40,15 +56,28 @@ ylabel('\rho(h)')
 xlabel('h')
 title('Autocorrelation')
 
+%% Problem 3
+
+clc
+
 figure;
 plot(acv)
 ylabel('\gamma(t)')
 xlabel('t')
 title('Autocovariance')
 
+sz = size(acv);
+a = ones(sz);
+a(a == 1) = 1;
+
+a' * acv
+
 %% Functions
 
 function[acv] = autocov(X,Y)
+
+% X = X(~isnan(X));
+% Y = Y(~isnan(Y));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % autocov computes the autocovariance between two column vectors X and Y
