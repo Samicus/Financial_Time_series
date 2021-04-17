@@ -30,14 +30,20 @@ close all
 
 figure;
 plot(log_returns)
+ylabel('Log(X_{t+1} - X_t)')
+xlabel('t')
 title('Log Returns')
 
 figure;
 stem(acf)
+ylabel('\rho(h)')
+xlabel('h')
 title('Autocorrelation')
 
 figure;
 plot(acv)
+ylabel('\gamma(t)')
+xlabel('t')
 title('Autocovariance')
 
 %% Functions
