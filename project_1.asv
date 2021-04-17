@@ -16,14 +16,14 @@ X_missing_tp1    = data_missing(2 : end);
 X_missing        = data_missing(1 : end - 1);
 
 returns         = X_tp1 - X;
-log_returns     = log(X_tp1) - log(X);
+log_returns     = cat(log(log(X_tp1) - log(X);
 
 missing_returns         = X_missing_tp1 - X_missing;
 log_missing_returns     = log(X_missing_tp1) - log(X_missing);
 
 [acf, lags, bounds, h] = autocorr(log_returns);
 
-acv = autocov(X_tp1, log_returns);
+acv = autocov(data, log_returns);
 
 %% Problem 2
 close all
