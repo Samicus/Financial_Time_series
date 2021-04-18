@@ -40,7 +40,7 @@ a = ones(sz);
 a(a == 1) = 1;
 
 
-%% Problem 3 - Predict On X
+%% Predict On Data X
 
 close all
 clear all
@@ -74,32 +74,41 @@ total_error = 0;
 
 n_NaN = 0;
 
-NaN_idx = find(isnan(data));
+NaN_idx = find(isnan(Y_missing));
 
 for i = 1:length(data)
     if isnan(data(i))
         n_NaN = n_NaN + 1;
         data(i) = computePred(data, i, a_vec, a0, q);
-        total_error = total_error + (complete_data(i) - data(i))^2;
+        total_error = total_error + abs((complete_data(i) - data(i))/complete_data(i));
     end
 end
+
+figure;
+plot(computeLogReturns(data))
+title('Data with Missing Values Predicted')
+
+figure;
+plot(computeLogReturns(complete_data))
+title('Complete Data')
 
 missing = computeLogReturns(data);
 complete = computeLogReturns(complete_data);
 
 figure;
 plot(missing(NaN_idx))
-title('Predicted versus Actual Values')
+title('Data with Missing Values Predicted')
 
 hold on
 plot(complete(NaN_idx))
-legend({'Predicted Values','Actual Values'},'Location','southwest')
+%title('Complete Data')
+legend({'Missing Values Predicted','Complete Values'},'Location','southwest')
 
 % Percentage error
-MSE = sqrt(total_error / n_NaN)
+error = 1 - total_error / n_NaN
 
 
-%% Problem 3 - Predict on Y
+%% Problem 3
 
 close all
 clear all
@@ -141,7 +150,7 @@ for i = 1:length(Y_missing)
     if isnan(Y_missing(i))
         n_NaN = n_NaN + 1;
         Y_missing(i) = computePred(Y_missing, i, a_vec, a0, q);
-        total_error = total_error + (Y_complete(i) - Y_missing(i))^2;
+        total_error = total_error + abs(Y_complete(i) - Y_missing(i));
     end
 end
 
@@ -155,7 +164,7 @@ plot(Y_complete(NaN_idx))
 legend({'Missing Values Predicted','Complete Values'},'Location','southwest')
 
 % Percentage error
-error = sqrt(total_error / n_NaN)
+error = total_error / n_NaN
 
 %% Functions
 
