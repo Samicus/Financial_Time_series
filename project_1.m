@@ -12,8 +12,9 @@ q = 7;
 returns = computeReturns(data);
 log_returns = computeLogReturns(data);
 
-rho = autocorr(log_returns);
-
+rho = autocorr(log_returns)
+autocorr(log_returns)
+%%
 gamma = autocov(data, log_returns);
 gamma = gamma(1:q);
 
@@ -40,63 +41,7 @@ a = ones(sz);
 a(a == 1) = 1;
 
 
-%% Problem 3 - Predict On X
 
-close all
-clear all
-clc
-
-table = readtable('intel.csv');
-data = table.VolumeMissing;
-complete_data = table.Volume;
-
-q = 4;
-
-rho = autocorr(data);
-rho_mat = zeros(q-1, q-1);
-
-% Init rho-matrix
-for i = 1:q-1
-    for j = 1:q-1
-        rho_mat(i, j) = rho(1 + abs(i - j));
-    end
-end
-
-a_vec = inv(rho_mat) * rho(2:q);
-
-data_notNaN = data(~isnan(data));
-
-mu = mean(data_notNaN);
-
-a0 = mu * (1 - sum(a_vec));
-
-total_error = 0;
-
-n_NaN = 0;
-
-NaN_idx = find(isnan(data));
-
-for i = 1:length(data)
-    if isnan(data(i))
-        n_NaN = n_NaN + 1;
-        data(i) = computePred(data, i, a_vec, a0, q);
-        total_error = total_error + (complete_data(i) - data(i))^2;
-    end
-end
-
-missing = computeLogReturns(data);
-complete = computeLogReturns(complete_data);
-
-figure;
-plot(missing(NaN_idx))
-title('Predicted versus Actual Values')
-
-hold on
-plot(complete(NaN_idx))
-legend({'Predicted Values','Actual Values'},'Location','southwest')
-
-% Percentage error
-MSE = sqrt(total_error / n_NaN)
 %% FILL MISSING DATA AND COMPUTE MSE ON Y
 
 close all
@@ -110,7 +55,7 @@ complete_data = table.Volume;
 q = 4;
 
 Y_missing = computeLogReturns(data);
-NaN_idx = find(isnan(Y_missing));
+NaN_idx = find(isnan(Y_missing))
 
 rho = autocorr(data);
 rho_mat = zeros(q-1, q-1);
@@ -141,13 +86,14 @@ complete = computeLogReturns(complete_data);
 total_error = sum((complete(NaN_idx) - missing(NaN_idx)).^2);
 
 figure;
-plot(missing(NaN_idx))
-title('Data with Missing Values Predicted')
-
-hold on
 plot(complete(NaN_idx))
 %title('Complete Data')
-legend({'Missing Values Predicted','Complete Values'},'Location','southwest')
+hold on
+
+plot(missing(NaN_idx))
+title('Data with Missing Values Predicted')
+legend({'Actual Values', 'Predicted Values'},'Location','southwest')
+
 
 % Percentage error
 error = sqrt(total_error / n_NaN)
@@ -180,7 +126,7 @@ end
 a_vec = inv(rho_mat) * rho(2:q);
 
 data_notNaN = Y_missing(~isnan(Y_missing));
-NaN_idx = find(isnan(Y_missing));
+NaN_idx = find(isnan(Y_missing))
 
 mu = mean(data_notNaN);
 
@@ -199,13 +145,14 @@ for i = 1:length(Y_missing)
 end
 
 figure;
-plot(Y_missing(NaN_idx))
-title('Data with Missing Values Predicted')
-
-hold on
 plot(Y_complete(NaN_idx))
 %title('Complete Data')
-legend({'Missing Values Predicted','Complete Values'},'Location','southwest')
+hold on
+
+plot(Y_missing(NaN_idx))
+title('Data with Missing Values Predicted')
+legend({'Actual Values', 'Predicted Values'},'Location','southwest')
+
 
 % Percentage error
 error = sqrt(total_error / n_NaN)

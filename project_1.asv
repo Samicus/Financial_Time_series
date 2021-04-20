@@ -12,8 +12,9 @@ q = 7;
 returns = computeReturns(data);
 log_returns = computeLogReturns(data);
 
-rho = autocorr(log_returns);
-
+rho = autocorr(log_returns)
+autocorr(log_returns)
+%%
 gamma = autocov(data, log_returns);
 gamma = gamma(1:q);
 
@@ -50,7 +51,7 @@ table = readtable('intel.csv');
 data = table.VolumeMissing;
 complete_data = table.Volume;
 
-q = 4;
+q = 7;
 
 rho = autocorr(data);
 rho_mat = zeros(q-1, q-1);
@@ -199,13 +200,14 @@ for i = 1:length(Y_missing)
 end
 
 figure;
-plot(Y_missing(NaN_idx))
-title('Data with Missing Values Predicted')
-
-hold on
 plot(Y_complete(NaN_idx))
 %title('Complete Data')
-legend({'Missing Values Predicted','Complete Values'},'Location','southwest')
+hold on
+
+plot(Y_missing(NaN_idx))
+title('Data with Missing Values Predicted')
+legend({'Actual Values', 'Predicted Values'},'Location','southwest')
+
 
 % Percentage error
 error = sqrt(total_error / n_NaN)
