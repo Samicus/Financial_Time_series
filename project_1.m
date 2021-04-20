@@ -50,7 +50,7 @@ table = readtable('intel.csv');
 data = table.VolumeMissing;
 complete_data = table.Volume;
 
-q = 7;
+q = 4;
 
 rho = autocorr(data);
 rho_mat = zeros(q-1, q-1);
@@ -97,7 +97,60 @@ legend({'Predicted Values','Actual Values'},'Location','southwest')
 
 % Percentage error
 MSE = sqrt(total_error / n_NaN)
+%% FILL MISSING DATA AND COMPUTE MSE ON Y
 
+close all
+clear all
+clc
+
+table = readtable('intel.csv');
+data = table.VolumeMissing;
+complete_data = table.Volume;
+
+q = 4;
+
+Y_missing = computeLogReturns(data);
+NaN_idx = find(isnan(Y_missing));
+
+rho = autocorr(data);
+rho_mat = zeros(q-1, q-1);
+
+% Init rho-matrix
+for i = 1:q-1
+    for j = 1:q-1
+        rho_mat(i, j) = rho(1 + abs(i - j));
+    end
+end
+
+a_vec = inv(rho_mat) * rho(2:q);
+data_notNaN = data(~isnan(data));
+mu = mean(data_notNaN);
+a0 = mu * (1 - sum(a_vec));
+total_error = 0;
+n_NaN = 0;
+
+for i = 1:length(data)
+    if isnan(data(i))
+        n_NaN = n_NaN + 1;
+        data(i) = computePred(data, i, a_vec, a0, q);
+    end
+end
+
+missing = computeLogReturns(data);
+complete = computeLogReturns(complete_data);
+total_error = sum((complete(NaN_idx) - missing(NaN_idx)).^2);
+
+figure;
+plot(missing(NaN_idx))
+title('Data with Missing Values Predicted')
+
+hold on
+plot(complete(NaN_idx))
+%title('Complete Data')
+legend({'Missing Values Predicted','Complete Values'},'Location','southwest')
+
+% Percentage error
+error = sqrt(total_error / n_NaN)
 
 %% Problem 3 - Predict on Y
 
@@ -109,7 +162,7 @@ table = readtable('intel.csv');
 data = table.VolumeMissing;
 complete_data = table.Volume;
 
-q = 7;
+q = 4;
 
 Y_missing = computeLogReturns(data);
 Y_complete = computeLogReturns(complete_data);
