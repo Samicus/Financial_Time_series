@@ -55,7 +55,7 @@ complete_data = table.Volume;
 q = 4;
 
 Y_missing = computeLogReturns(data);
-NaN_idx = find(isnan(Y_missing))
+NaN_idx = find(isnan(Y_missing));
 
 rho = autocorr(data);
 rho_mat = zeros(q-1, q-1);
@@ -83,7 +83,7 @@ end
 
 missing = computeLogReturns(data);
 complete = computeLogReturns(complete_data);
-total_error = sum((complete(NaN_idx) - missing(NaN_idx)).^2);
+total_error = sum((complete(NaN_idx) - missing(NaN_idx)).^2)
 
 figure;
 plot(complete(NaN_idx))
@@ -96,7 +96,7 @@ legend({'Actual Values', 'Predicted Values'},'Location','southwest')
 
 
 % Percentage error
-error = sqrt(total_error / n_NaN)
+error = sqrt(total_error / length(NaN_idx))
 
 %% Problem 3 - Predict on Y
 
@@ -140,9 +140,10 @@ for i = 1:length(Y_missing)
     if isnan(Y_missing(i))
         n_NaN = n_NaN + 1;
         Y_missing(i) = computePred(Y_missing, i, a_vec, a0, q);
-        total_error = total_error + (Y_complete(i) - Y_missing(i))^2;
+        %total_error = total_error + (Y_complete(i) - Y_missing(i))^2;
     end
 end
+total_error = sum((Y_complete(NaN_idx) - Y_missing(NaN_idx)).^2)
 
 figure;
 plot(Y_complete(NaN_idx))
