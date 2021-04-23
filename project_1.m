@@ -42,7 +42,7 @@ a(a == 1) = 1;
 
 
 
-%% FILL MISSING DATA AND COMPUTE MSE ON Y
+%% PREDICT FUTURE VALUES AND COMPUTE MSE ON Y (not part of task)
 
 close all
 clear all
@@ -99,7 +99,7 @@ legend({'Actual Values', 'Predicted Values'},'Location','southwest')
 % Percentage error
 error = sqrt(total_error / length(NaN_idx))
 
-%% Problem 3 - Predict on Y
+%% Problem 3 - Predict on X
 
 close all
 clear all
@@ -109,55 +109,49 @@ table = readtable('intel.csv');
 data = table.VolumeMissing;
 complete_data = table.Volume;
 
-q = 7;
+Y_missing2 = computeLogReturns(data);
+NaN_idx2 = find(isnan(Y_missing2));
+
+q = 4;
+
+NaN_idx = find(isnan(data));
+
+rho = autocorr(data, length(data) - length(NaN_idx) - 1);
+N = length(data);
+
+data_notNaN = data(~isnan(data));
+mu = mean(data_notNaN);
+
+for idx = 1:length(NaN_idx)
+
+    s = computeS(NaN_idx(idx), NaN_idx, q, N);
+
+    rho_mat = computeRhoMat(s, rho);
+
+    a_vec = linsolve(rho_mat, rho(1+abs(NaN_idx(idx)-fliplr(s))));
+
+    a0 = mu * (1 - sum(a_vec));
+    
+    data(NaN_idx(idx)) = computePred(data, flip(s), a_vec, a0);
+end
 
 Y_missing = computeLogReturns(data);
 Y_complete = computeLogReturns(complete_data);
 
-rho = autocorr(Y_missing);
-rho_mat = zeros(q-1, q-1);
-
-% Init rho-matrix
-for i = 1:q-1
-    for j = 1:q-1
-        rho_mat(i, j) = rho(1 + abs(i - j));
-    end
-end
-
-a_vec = linsolve(rho_mat, rho(2:q));
-
-data_notNaN = Y_missing(~isnan(Y_missing));
-NaN_idx = find(isnan(Y_missing));
-
-mu = mean(data_notNaN);
-
-a0 = mu * (1 - sum(a_vec));
-
-n_NaN = 0;
-
-for i = 1:length(Y_missing)
-    if isnan(Y_missing(i))
-        n_NaN = n_NaN + 1;
-        Y_missing(i) = computePred(Y_missing, i, a_vec, a0, q);
-    end
-end
-
-total_error = sum((Y_complete(NaN_idx) - Y_missing(NaN_idx)).^2);
+total_error = sum((Y_complete(NaN_idx2) - Y_missing(NaN_idx2)).^2);
 
 figure;
-plot(Y_complete(NaN_idx))
-%title('Complete Data')
+plot(Y_complete(NaN_idx2))
 hold on
-
-plot(Y_missing(NaN_idx))
+plot(Y_missing(NaN_idx2))
 title('Data with Missing Values Predicted')
 legend({'Actual Values', 'Predicted Values'},'Location','southwest')
 
 
 % Percentage error
-error = sqrt(total_error / n_NaN)
+error = sqrt(total_error / length(NaN_idx2))
 
-%% Problem 3 - ULTIMATE EDITION GOLD PLUS - 1699 kr - Only On Playstation
+%% Problem 3 - Predict on Y
 
 close all
 clear all
@@ -174,44 +168,37 @@ Y_complete = computeLogReturns(complete_data);
 
 NaN_idx = find(isnan(Y_missing));
 
-rho = autocorr(data, length(Y_missing)-length(NaN_idx));
-N = length(rho);
+rho = autocorr(Y_missing, length(Y_missing) - length(NaN_idx) - 1);
+N = length(data);
+
+data_notNaN = Y_missing(~isnan(Y_missing));
+mu = mean(data_notNaN);
 
 for idx = 1:length(NaN_idx)
 
     s = computeS(NaN_idx(idx), NaN_idx, q, N);
 
-    rho_mat = zeros(length(s), length(s));
-    for i = 1:length(s)
-        for j = 1:length(s)
-            rho_mat(i, j) = rho(abs(s(end+1-j) - s(end+1-i))+1);
-        end
-    end
+    rho_mat = computeRhoMat(s, rho);
 
-    a_vec = linsolve(rho_mat, rho(1+abs(NaN_idx(idx)-flip(s))));
-
-    data_notNaN = Y_missing(~isnan(Y_missing));
-    mu = mean(data_notNaN);
+    a_vec = linsolve(rho_mat, rho(1+abs(NaN_idx(idx)-fliplr(s))));
 
     a0 = mu * (1 - sum(a_vec));
     
-    Y_missing(NaN_idx(idx)) = computePred(Y_missing, s, a_vec, a0);
+    Y_missing(NaN_idx(idx)) = computePred(Y_missing, flip(s), a_vec, a0);
 end
 
 total_error = sum((Y_complete(NaN_idx) - Y_missing(NaN_idx)).^2);
 
 figure;
 plot(Y_complete(NaN_idx))
-%title('Complete Data')
 hold on
-
 plot(Y_missing(NaN_idx))
 title('Data with Missing Values Predicted')
 legend({'Actual Values', 'Predicted Values'},'Location','southwest')
 
 
 % Percentage error
-error = sqrt(total_error / 200)
+error = sqrt(total_error / length(NaN_idx))
 
 %% Functions
 
@@ -222,13 +209,13 @@ function s = computeS(idx, NaN_idx, q, N)
     
 end
 
-function rho_mat = computeRhoMat(idx, q)
-rho_mat = zeros(2*q-1, 2*q-1);
-for i = idx-q/2:2*q-1
-    for j = 1:2*q-1
-        rho_mat(i, j) = rho(1 + abs(i - j));
+function rho_mat = computeRhoMat(s, rho)
+rho_mat = zeros(length(s), length(s));
+    for i = 1:length(s)
+        for j = 1:length(s)
+            rho_mat(i, j) = rho(abs(s(end+1-j) - s(end+1-i))+1);
+        end
     end
-end
 end
 
 function log_ret = computeLogReturns(data)
