@@ -88,13 +88,12 @@ total_error = sum((complete(NaN_idx) - missing(NaN_idx)).^2);
 
 figure;
 plot(complete(NaN_idx))
-%title('Complete Data')
 hold on
-
 plot(missing(NaN_idx))
 title('Data with Missing Values Predicted')
+xlabel('NaN Indices')
+ylabel('Value')
 legend({'Actual Values', 'Predicted Values'},'Location','southwest')
-
 
 % Percentage error
 error = sqrt(total_error / length(NaN_idx))
@@ -144,7 +143,9 @@ figure;
 plot(Y_complete(NaN_idx2))
 hold on
 plot(Y_missing(NaN_idx2))
-title('Data with Missing Values Predicted')
+title('Data with Missing Values Predicted on X')
+xlabel('NaN Indices')
+ylabel('Value')
 legend({'Actual Values', 'Predicted Values'},'Location','southwest')
 
 
@@ -164,6 +165,7 @@ complete_data = table.Volume;
 q = 4;
 
 Y_missing = computeLogReturns(data);
+Y_interpolation = computeLogReturns(data);
 Y_complete = computeLogReturns(complete_data);
 
 NaN_idx = find(isnan(Y_missing));
@@ -193,12 +195,27 @@ figure;
 plot(Y_complete(NaN_idx))
 hold on
 plot(Y_missing(NaN_idx))
-title('Data with Missing Values Predicted')
+title('Data with Missing Values Predicted on Y')
+xlabel('NaN Indices')
+ylabel('Value')
 legend({'Actual Values', 'Predicted Values'},'Location','southwest')
 
 
 % Percentage error
 error = sqrt(total_error / length(NaN_idx))
+
+[F,TF] = fillmissing(Y_interpolation,'linear','SamplePoints',1:length(Y_interpolation));
+total_error_interp = sum((Y_complete(NaN_idx) - F(TF)).^2);
+error = sqrt(total_error_interp / length(NaN_idx))
+
+figure;
+plot(Y_complete(NaN_idx))
+hold on
+plot(F(TF))
+title('Data with Interpolation')
+xlabel('NaN Indices')
+ylabel('Value')
+legend({'Actual Values', 'Predicted Values'},'Location','southwest')
 
 %% Functions
 
